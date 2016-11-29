@@ -1,6 +1,6 @@
 // 2 DO
 
-// - reflash the usb host
+// - make the buttons more sensitive, sniff original sysex
 // - more efficient handeling of displaying input notes
 // - Make the display functions build on eachother
 
@@ -107,6 +107,7 @@ byte eepromGet(byte adress, byte minValue = 0, byte maxValue = 255, byte default
 24 - Green Blink Fast
 25 -> 127 - Green*/
 
+// Special Dispay Characters
 #define UP_ARROW                            0
 #define DOWN_ARROW                          1
 #define THREE_STACKED_HORIZONTAL_LINES      2
@@ -231,7 +232,6 @@ const char* nameOfColors[numberOfColorSchemes] = {
   "Hero",
   "Slime",
   "TMNT",
-
 };
 
 /////////////////////////////////////////////////
@@ -432,6 +432,7 @@ void initScalePresetSelectButtons(){
 
 
 void initPushSettings(){
+  delay(30);
   midiUSB.sendSysEx(9,sysexUserModeMessage,true);
   //midiUSB.sendSysEx(9,sysexChannelPressure,true);
   midiUSB.sendSysEx(40,padSenseSyssexLow,true);
@@ -542,7 +543,7 @@ void showDisplayRow(byte row){
 
 ////////////////////////////////////////////////////////////////
 //
-// Homemade USB MIDI functions because the library sucks
+// Homemade USB MIDI functions because the USB host can't cope with the library or something
 //
 ///////////////////////////////////////////////////////////////
 
@@ -563,7 +564,7 @@ void mySendControlChange(byte number, byte value){
 }
 
 void mySendAfterTouch(byte value){
-  Serial2.write(0xD0);
+  Serial2.write(0xD0); //ch1
   Serial2.write(value);
 }
 
@@ -627,12 +628,12 @@ void handleNoteOffUSB(byte channel, byte pitch, byte velocity)
 }
 
 void handleAfterTouchPolyUSB(byte channel, byte note, byte pressure){
-  midiDIN.sendPolyPressure(note, pressure, pageChannels[instrumentPageIndex]);
+  midiDIN.sendAfterTouch(pressure, pageChannels[instrumentPageIndex]);
 }
 
 void handleAfterTouchChannelUSB(byte channel, byte pressure){
-  //midiDIN.sendAfterTouch(pressure, pageChannels[instrumentPageIndex]);
-  mySendAfterTouch(pressure);
+  midiDIN.sendAfterTouch(pressure, pageChannels[instrumentPageIndex]);
+  //mySendAfterTouch(pressure);
 }
 
 void handleControlChangeUSB(byte channel, byte control, byte value){
@@ -899,7 +900,7 @@ void setup() {
   Serial2.flush();
 
   midiUSB.begin(1); //the push is always sending on channel 1
-  midiDIN.begin(MIDI_CHANNEL_OMNI); 
+  midiDIN.begin(MIDI_CHANNEL_OMNI);  //the midi din ports can send on any channel
   midiUSB.turnThruOff();
   midiDIN.turnThruOff();
 
@@ -909,7 +910,7 @@ void setup() {
   midiUSB.setHandleNoteOff(handleNoteOffUSB);
   midiUSB.setHandleControlChange(handleControlChangeUSB);
   midiUSB.setHandlePitchBend(handlePitchBendUSB);
-  midiUSB.setHandleAfterTouchChannel(handleAfterTouchChannelUSB);
+  //midiUSB.setHandleAfterTouchChannel(handleAfterTouchChannelUSB);
   //midiUSB.setHandleAfterTouchPoly(handleAfterTouchPolyUSB);
 
   midiDIN.setHandleNoteOn(handleNoteOnDIN); // listen for note on/off feedback to visualize on the grid
