@@ -3,6 +3,7 @@
 Use an ableton push 1 to control synthesisers via DIN MIDI, without the need of a computer.
 
 Original features supported:
+
 - Play notes in scale with velocity sensitive pads
 - All scales from original push
 - Select root key
@@ -19,6 +20,9 @@ New features added:
 - EEPROM memory recalls all settings
 - USB hot-swappable
 
+Dependencies:
+
+- MIDI library (https://github.com/FortySevenEffects/arduino_midi_library)
 
 ---------------------------------------------------------------
 DIY
